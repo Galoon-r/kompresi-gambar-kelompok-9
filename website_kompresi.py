@@ -95,14 +95,17 @@ def compress_with_pca(image: Image.Image, n_components: int) -> Image.Image:
 # ─────────────────────────────────────────────
 # HELPER  ← FIX: format default PNG, bukan JPEG
 # ─────────────────────────────────────────────
-def file_size_kb(img: Image.Image, fmt="PNG") -> float:
+def file_size_kb(img: Image.Image, fmt="JPEG") -> float:
     buf = io.BytesIO()
-    img.save(buf, format=fmt)
+    if fmt == "JPEG":
+        img.save(buf, format="JPEG", quality=95)
+    else:
+        img.save(buf, format=fmt)
     return buf.tell() / 1024
 
-def img_to_bytes(img: Image.Image, fmt="PNG") -> bytes:
+def img_to_bytes(img: Image.Image, fmt="JPEG") -> bytes:
     buf = io.BytesIO()
-    img.save(buf, format=fmt)
+    img.save(buf, format="JPEG", quality=95)
     return buf.getvalue()
 
 # ─────────────────────────────────────────────
