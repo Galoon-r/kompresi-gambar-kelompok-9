@@ -250,12 +250,12 @@ with col_right:
 
                 dl_bytes = img_to_bytes(result_img, "PNG")
                 st.download_button(
-                    label="⬇️ Download Hasil (PNG)",
-                    data=dl_bytes,
-                    file_name=f"compressed_pca{n_components}.png",
-                    mime="image/png",
-                    use_container_width=True,
-                )
+                   label="⬇️ Download Hasil (JPEG)",
+                   data=dl_bytes,
+                   file_name=f"compressed_pca{n_components}.jpg",
+                   mime="image/jpeg",
+                   use_container_width=True,
+            )
             else:
                 st.info("Jalankan kompresi terlebih dahulu untuk melihat statistik.")
 
