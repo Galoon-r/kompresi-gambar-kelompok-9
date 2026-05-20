@@ -22,13 +22,9 @@ st.markdown("""
 @import url('https://fonts.googleapis.com/css2?family=Syne:wght@400;600;800&family=DM+Sans:wght@300;400;500&display=swap');
 
 html, body, [class*="css"] { font-family: 'DM Sans', sans-serif; }
-
 .stApp { background: #0d0d0f; color: #e8e6e0; }
-
 h1, h2, h3 { font-family: 'Syne', sans-serif !important; }
-
 .block-container { padding-top: 2rem; padding-bottom: 2rem; }
-
 div[data-testid="stFileUploader"] {
     border: 2px dashed #2e2e38;
     border-radius: 12px;
@@ -37,9 +33,7 @@ div[data-testid="stFileUploader"] {
     transition: border-color 0.2s;
 }
 div[data-testid="stFileUploader"]:hover { border-color: #5c6aff; }
-
 .stSlider > div { padding: 0.5rem 0; }
-
 .stat-box {
     background: #16161a;
     border: 1px solid #2a2a35;
@@ -62,7 +56,6 @@ div[data-testid="stFileUploader"]:hover { border-color: #5c6aff; }
 }
 .stat-value.green { color: #4ade80; }
 .stat-value.blue  { color: #60a5fa; }
-
 div[data-testid="stButton"] > button {
     background: #5c6aff;
     color: white;
@@ -79,47 +72,30 @@ div[data-testid="stButton"] > button:hover {
     background: #7b86ff;
     transform: translateY(-1px);
 }
-
 .divider { border-top: 1px solid #1e1e28; margin: 1.5rem 0; }
-
-.info-tag {
-    display: inline-block;
-    background: #1e1e2e;
-    border: 1px solid #2e2e45;
-    border-radius: 20px;
-    padding: 2px 12px;
-    font-size: 0.78rem;
-    color: #8888aa;
-    margin: 2px;
-}
 </style>
 """, unsafe_allow_html=True)
 
 # ─────────────────────────────────────────────
-# FUNGSI KOMPRESI PCA  ← ISI DI SINI
+# FUNGSI KOMPRESI PCA  ← FIX: tidak nested lagi
 # ─────────────────────────────────────────────
 def compress_with_pca(image: Image.Image, n_components: int) -> Image.Image:
-    def compress_with_pca(image: Image.Image, n_components: int) -> Image.Image:
-        from sklearn.decomposition import PCA
+    img_array = np.array(image, dtype=np.float32)
+    reconstructed = np.zeros_like(img_array)
 
-        img_array = np.array(image, dtype=np.float32)
-        reconstructed = np.zeros_like(img_array)
+    for ch in range(3):  # R, G, B
+        channel = img_array[:, :, ch]
+        pca = PCA(n_components=n_components)
+        transformed = pca.fit_transform(channel)
+        reconstructed[:, :, ch] = pca.inverse_transform(transformed)
 
-        for ch in range(3):  # R, G, B
-            channel = img_array[:, :, ch]
-
-            pca = PCA(n_components=n_components)
-            transformed = pca.fit_transform(channel)
-            reconstructed[:, :, ch] = pca.inverse_transform(transformed)
-
-        reconstructed = np.clip(reconstructed, 0, 255).astype(np.uint8)
-        return Image.fromarray(reconstructed)
-
+    reconstructed = np.clip(reconstructed, 0, 255).astype(np.uint8)
+    return Image.fromarray(reconstructed)
 
 # ─────────────────────────────────────────────
-# HELPER
+# HELPER  ← FIX: format default PNG, bukan JPEG
 # ─────────────────────────────────────────────
-def file_size_kb(img: Image.Image, fmt="JPEG") -> float:
+def file_size_kb(img: Image.Image, fmt="PNG") -> float:
     buf = io.BytesIO()
     img.save(buf, format=fmt)
     return buf.tell() / 1024
@@ -128,7 +104,6 @@ def img_to_bytes(img: Image.Image, fmt="PNG") -> bytes:
     buf = io.BytesIO()
     img.save(buf, format=fmt)
     return buf.getvalue()
-
 
 # ─────────────────────────────────────────────
 # HEADER
@@ -145,7 +120,7 @@ st.markdown("""
 """, unsafe_allow_html=True)
 
 # ─────────────────────────────────────────────
-# LAYOUT: dua kolom utama
+# LAYOUT
 # ─────────────────────────────────────────────
 col_left, col_right = st.columns([1, 2], gap="large")
 
@@ -180,9 +155,6 @@ with col_left:
     st.markdown("<div class='divider'></div>", unsafe_allow_html=True)
     run_btn = st.button("🚀 Jalankan Kompresi")
 
-# ─────────────────────────────────────────────
-# AREA HASIL
-# ─────────────────────────────────────────────
 with col_right:
     if uploaded is None:
         st.markdown("""
@@ -202,13 +174,11 @@ with col_right:
         w, h = image_orig.size
         orig_kb = file_size_kb(image_orig)
 
-        # Batasi n_components agar tidak melebihi dimensi gambar
         max_comp = min(h, w, n_components)
         if max_comp < n_components:
             st.warning(f"⚠️ n_components dibatasi ke {max_comp} (ukuran gambar: {w}×{h}px)")
             n_components = max_comp
 
-        # Preview gambar asli
         tab1, tab2 = st.tabs(["📸 Sebelum & Sesudah", "📊 Statistik"])
 
         with tab1:
@@ -275,7 +245,6 @@ with col_right:
 
                 st.markdown("<br>", unsafe_allow_html=True)
 
-                # Tombol download
                 dl_bytes = img_to_bytes(result_img, "PNG")
                 st.download_button(
                     label="⬇️ Download Hasil (PNG)",
