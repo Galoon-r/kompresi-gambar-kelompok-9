@@ -175,7 +175,7 @@ with col_right:
     else:
         image_orig = Image.open(uploaded).convert("RGB")
         w, h = image_orig.size
-        orig_kb = file_size_kb(image_orig)
+        orig_kb = len(uploaded.getvalue()) / 1024  # ← ukuran file asli
 
         max_comp = min(h, w, n_components)
         if max_comp < n_components:
